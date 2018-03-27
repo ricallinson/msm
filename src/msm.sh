@@ -144,13 +144,13 @@ msm() {
         # Mount the image.
         disk=$(hdiutil attach -imagekey diskimage-class=CRawDiskImage -nomount ./pkg/msm.img)
         # Write boot sector
-        dd if=./kernel/Core-9.0.iso of=$disk 
+        dd if=./kernel/core-9.0.img of=$disk
         # Unmount the disk
         diskutil unmountDisk $disk
         # Eject the disk
         diskutil eject $disk
         # Start the VM
-        qemu-system-x86_64 -m 512 -cdrom ./pkg/msm.img -boot d
+        qemu-system-x86_64 -m 512 ./pkg/msm.img
     ;;
     *)
         echo "msm: unknown command \"$1\""
