@@ -42,7 +42,7 @@ msm_helper_find_up() {
 
 # @String $1 - Directory path
 # @return "dir/path" || ""
-# Searches up through the directories until it finds a directory named 'src'.
+# Searches up through the directories until it finds a directory named 'srv'.
 msm_helper_find_srv() {
     local dir
     dir="$(msm_helper_find_up "$1" 'srv')"
@@ -92,7 +92,7 @@ msm_here() {
 }
 
 # path/to/core/dir
-msm_unpack_core() {
+msm_unpack_gz() {
     currentDir=$(pwd)
     coreDir="$1"
     mkdir $coreDir/rootfs
@@ -103,12 +103,12 @@ msm_unpack_core() {
 }
 
 # path/to/core/dir
-msm_pack_core() {
+msm_pack_gz() {
     currentDir=$(pwd)
     coreDir="$1"
     cd $coreDir/rootfs
     sudo find . | sudo cpio -o -H newc | sudo gzip -2 > $coreDir/core.gz
-    # sudo advdef -z4 core
+    # sudo advdef -z4 $coreDir/core.gz
     sudo chmod 755 $coreDir/core.gz
     cd $currentDir
     rm -rf $coreDir/rootfs
@@ -139,7 +139,7 @@ msm_mount_disk_image() {
 }
 
 msm_unmount_disk_image() {
-    hdiutil unmount $MSMPATH/mnt
+    hdiutil eject $MSMPATH/mnt
     return 0
 }
 
@@ -152,19 +152,19 @@ msm_build_disk_image() {
     msm_create_disk_image
     msm_mount_disk_image
     msm_open_core_gz "$MSMPATH/mnt/tce/boot"
-    msm_insert_service
+    # msm_insert_service
     msm_close_core_gz "$MSMPATH/mnt/tce/boot"
     msm_unmount_disk_image
     return 0
 }
 
 msm_open_core_gz() {
-    msm_unpack_core "$1"
+    msm_unpack_gz "$1"
     return 0
 }
 
 msm_close_core_gz() {
-    msm_pack_core "$1"
+    msm_pack_gz "$1"
     return 0
 }
 
