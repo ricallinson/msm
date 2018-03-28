@@ -152,7 +152,7 @@ msm_build_disk_image() {
     msm_create_disk_image
     msm_mount_disk_image
     msm_open_core_gz "$MSMPATH/mnt/tce/boot"
-    # msm_insert_service
+    msm_insert_service
     msm_close_core_gz "$MSMPATH/mnt/tce/boot"
     msm_unmount_disk_image
     return 0

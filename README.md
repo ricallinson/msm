@@ -40,4 +40,3 @@ Click the next arrow and select;
 On completion exit QEMU. Now start a new VM with the image just created;
 
 	qemu-system-x86_64 -m 512 -hda ./images/core-9.0.img
-
