@@ -53,7 +53,7 @@ msm_helper_find_srv() {
 
 # @String $1 - Directory path
 # @return "/abs/dir/path" || ""
-# Resolves the given directory if it exists.
+# Resolves the given directory to an absolute path if it exists.
 msm_helper_resolve() {
     cd "$1" 2>/dev/null || return $?  # cd to desired directory; if fail, quell any error messages but return exit status
     pwd -P # output full, link-resolved path
@@ -102,7 +102,8 @@ msm_here() {
     return 0
 }
 
-# path/to/core/dir
+# @String $1 - Directory path
+# Unpacks core.gz in the given directory to new child directory 'rootfs'.
 msm_unpack_gz() {
     currentDir=$(pwd)
     coreDir="$1"
@@ -113,12 +114,13 @@ msm_unpack_gz() {
     return 0
 }
 
-# path/to/core/dir
+# @String $1 - Directory path
+# Packs core.gz in the given directory from the content of the child directory 'rootfs'.
 msm_pack_gz() {
     currentDir=$(pwd)
     coreDir="$1"
     cd "$coreDir/rootfs" || return 1
-    sudo find . | sudo cpio -o -H newc | sudo gzip -2 > "$coreDir/core.gz"
+    sudo find . | sudo cpio -o -H newc | sudo gzip -2 | sudo tee "$coreDir/core.gz" > /dev/null
     # sudo advdef -z4 $coreDir/core.gz
     sudo chmod 755 "$coreDir/core.gz"
     cd "$currentDir" || return 1
@@ -126,7 +128,7 @@ msm_pack_gz() {
     return 0
 }
 
-# Create a base disk image.
+# Creates a base TinyCore disk image in the workspaces 'pkg' directory.
 msm_create_disk_image() {
     # Cleanup img directory
     rm "$MSMPATH/pkg/*"
@@ -141,40 +143,35 @@ msm_create_disk_image() {
     return 0
 }
 
+# Mounts the disk image './pkg/service.img' to './mnt'.
 msm_mount_disk_image() {
     path=$(hdiutil attach "$MSMPATH/pkg/service.img" -mountpoint "$MSMPATH/mnt")
     echo "$path"
     return 0
 }
 
+# Mounts the disk image at './mnt'.
 msm_unmount_disk_image() {
     hdiutil eject "$MSMPATH/mnt"
     return 0
 }
 
+# Appends '/opt/srv/init.sh' to './mnt/.../opt/bootlocal.sh' and copies the content of './srv' to '/mnt/.../opt/srv'.
 msm_insert_service() {
     echo "/opt/srv/init.sh" >> "$MSMPATH/mnt/tce/boot/rootfs/opt/bootlocal.sh"
     sudo rsync -xa --progress "$MSMPATH/srv" "$MSMPATH/mnt/tce/boot/rootfs/opt"
     return 0
 }
 
+# Creates a new base TinyCore disk image in the workspace './pkg' directory.
+# Copies to the disk image the './srv' directory and makes './srv/init.sh' execute on startup.
 msm_build_disk_image() {
     msm_create_disk_image
     msm_mount_disk_image
-    msm_open_core_gz "$MSMPATH/mnt/tce/boot"
+    msm_unpack_gz "$MSMPATH/mnt/tce/boot"
     msm_insert_service
-    msm_close_core_gz "$MSMPATH/mnt/tce/boot"
+    msm_pack_gz "$MSMPATH/mnt/tce/boot"
     msm_unmount_disk_image
-    return 0
-}
-
-msm_open_core_gz() {
-    msm_unpack_gz "$1"
-    return 0
-}
-
-msm_close_core_gz() {
-    msm_pack_gz "$1"
     return 0
 }
 
@@ -244,12 +241,6 @@ msm() {
         msm_build_disk_image
         # Start a VM running the service
         qemu-system-x86_64 -m 512 -drive file="$MSMPATH/pkg/service.img,index=0,media=disk,format=raw"
-    ;;
-    "open" )
-        msm_open_core_gz "$2"
-    ;;
-    "close" )
-        msm_close_core_gz "$2"
     ;;
     *)
         echo "msm: unknown command '$1'"
