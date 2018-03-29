@@ -1,1 +1,3 @@
-#!/bin/bash
+#!/bin/sh
+echo "Hello World!"
+sleep 10

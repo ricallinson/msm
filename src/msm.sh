@@ -79,8 +79,6 @@ msm_here() {
     fi
     mkdir -p "$wPath/pkg"
     mkdir -p "$wPath/srv"
-    echo "#!/bin/bash" > "$wPath/srv/init.sh"
-    chmod +x "$wPath/srv/init.sh"
     export MSMPATH=$wPath
 
     echo
@@ -143,11 +141,9 @@ msm_unmount_disk_image() {
 }
 
 msm_insert_service() {
-    # echo "/opt/srv/init.sh" >> $MSMPATH/mnt/tce/boot/rootfs/opt/bootlocal.sh
-    echo "/opt/srv/init.sh" >> $MSMPATH/mnt/tce/boot/rootfs/opt/bootsync.sh
-    mkdir -p $MSMPATH/mnt/tce/boot/rootfs/opt/srv
-    sudo chown root:20 $MSMPATH/mnt/tce/boot/rootfs/opt/srv
-    sudo rsync -xa --progress $MSMPATH/srv/ $MSMPATH/mnt/tce/boot/rootfs/opt/srv
+    echo "/opt/srv/init.sh" >> $MSMPATH/mnt/tce/boot/rootfs/opt/bootlocal.sh
+    # echo "/opt/srv/init.sh" >> $MSMPATH/mnt/tce/boot/rootfs/opt/bootsync.sh
+    sudo rsync -xa --progress $MSMPATH/srv $MSMPATH/mnt/tce/boot/rootfs/opt
     return 0
 }
 
