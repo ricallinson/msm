@@ -61,6 +61,21 @@ msm_helper_resolve() {
 }
 
 # @String $1 - Directory path
+# Creates directories and files for a new workspace.
+msm_make_workspace() {
+    dir=$(msm_helper_resolve "$wPath/srv")
+    if [ -e "$dir" ]; then
+        return 0
+    fi
+    mkdir -p "$wPath/pkg"
+    mkdir -p "$wPath/srv"
+    echo "#!/bin/sh" > "$wPath/srv/init.sh"
+    echo "echo \"Hello World!\"" >> "$wPath/srv/init.sh"
+    chmod +x "$wPath/srv/init.sh"
+    return 0
+}
+
+# @String $1 - Directory path
 # Sets the workspace either by walking up from the given directory
 # to find one or creating one in the given directory.
 msm_here() {
@@ -77,9 +92,8 @@ msm_here() {
         echo
         return 0
     fi
-    mkdir -p "$wPath/pkg"
-    mkdir -p "$wPath/srv"
     export MSMPATH=$wPath
+    msm_make_workspace "$wPath"
 
     echo
     echo "Msm workspace set to: $MSMPATH"
@@ -92,10 +106,10 @@ msm_here() {
 msm_unpack_gz() {
     currentDir=$(pwd)
     coreDir="$1"
-    mkdir $coreDir/rootfs
-    cd $coreDir/rootfs
-    gunzip -c $coreDir/core.gz | sudo cpio -i -d
-    cd $currentDir
+    mkdir "$coreDir/rootfs"
+    cd "$coreDir/rootfs" || return 1
+    gunzip -c "$coreDir/core.gz" | sudo cpio -i -d
+    cd "$currentDir" || return 1
     return 0
 }
 
@@ -103,47 +117,44 @@ msm_unpack_gz() {
 msm_pack_gz() {
     currentDir=$(pwd)
     coreDir="$1"
-    cd $coreDir/rootfs
-    sudo find . | sudo cpio -o -H newc | sudo gzip -2 > $coreDir/core.gz
+    cd "$coreDir/rootfs" || return 1
+    sudo find . | sudo cpio -o -H newc | sudo gzip -2 > "$coreDir/core.gz"
     # sudo advdef -z4 $coreDir/core.gz
-    sudo chmod 755 $coreDir/core.gz
-    cd $currentDir
-    rm -rf $coreDir/rootfs
+    sudo chmod 755 "$coreDir/core.gz"
+    cd "$currentDir" || return 1
+    rm -rf "$coreDir/rootfs"
     return 0
 }
 
 # Create a base disk image.
 msm_create_disk_image() {
     # Cleanup img directory
-    rm $MSMPATH/pkg/*
+    rm "$MSMPATH/pkg/*"
     # Create a raw disk image
-    qemu-img create -f raw $MSMPATH/pkg/service.img 50M
+    qemu-img create -f raw "$MSMPATH/pkg/service.img" 50M
     # Mount the image.
-    disk=$(hdiutil attach -imagekey diskimage-class=CRawDiskImage -nomount $MSMPATH/pkg/service.img)
+    disk=$(hdiutil attach -imagekey diskimage-class=CRawDiskImage -nomount "$MSMPATH/pkg/service.img")
     # Write boot sector
-    dd if=$MSMHOME/images/core-9.0.img of=$disk
-    # Unmount the disk
-    diskutil unmountDisk $disk
+    dd if="$MSMHOME/images/core-9.0.img" of=$disk
     # Eject the disk
     diskutil eject $disk
     return 0
 }
 
 msm_mount_disk_image() {
-    path=$(hdiutil attach $MSMPATH/pkg/service.img -mountpoint $MSMPATH/mnt )
-    echo $path
+    path=$(hdiutil attach "$MSMPATH/pkg/service.img" -mountpoint "$MSMPATH/mnt")
+    echo "$path"
     return 0
 }
 
 msm_unmount_disk_image() {
-    hdiutil eject $MSMPATH/mnt
+    hdiutil eject "$MSMPATH/mnt"
     return 0
 }
 
 msm_insert_service() {
-    echo "/opt/srv/init.sh" >> $MSMPATH/mnt/tce/boot/rootfs/opt/bootlocal.sh
-    # echo "/opt/srv/init.sh" >> $MSMPATH/mnt/tce/boot/rootfs/opt/bootsync.sh
-    sudo rsync -xa --progress $MSMPATH/srv $MSMPATH/mnt/tce/boot/rootfs/opt
+    echo "/opt/srv/init.sh" >> "$MSMPATH/mnt/tce/boot/rootfs/opt/bootlocal.sh"
+    sudo rsync -xa --progress "$MSMPATH/srv" "$MSMPATH/mnt/tce/boot/rootfs/opt"
     return 0
 }
 
@@ -232,7 +243,7 @@ msm() {
         # Build service image
         msm_build_disk_image
         # Start a VM running the service
-        qemu-system-x86_64 -m 512 -drive file=$MSMPATH/pkg/service.img,index=0,media=disk,format=raw
+        qemu-system-x86_64 -m 512 -drive file="$MSMPATH/pkg/service.img,index=0,media=disk,format=raw"
     ;;
     "open" )
         msm_open_core_gz "$2"
@@ -241,7 +252,7 @@ msm() {
         msm_close_core_gz "$2"
     ;;
     *)
-        echo "msm: unknown command \"$1\""
+        echo "msm: unknown command '$1'"
         echo "Run 'msm help' for usage."
         return 1
     esac
