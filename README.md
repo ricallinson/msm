@@ -6,6 +6,7 @@ A command line tool that creates a Linux disk image from an executable file.
 
 * [QEMU](https://www.qemu.org/)
 * [Shellcheck](https://github.com/koalaman/shellcheck)
+* [extFS](https://www.paragon-software.com/home/extfs-mac/)
 
 ## Testing
 

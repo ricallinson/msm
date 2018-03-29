@@ -14,7 +14,6 @@
 export MSMVERSION
 MSMVERSION="0.0.1"
 export MSMHOME
-MSMHOME=$(msm_helper_resolve "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/..")
 
 msm_version() {
     echo "$MSMVERSION"
@@ -144,6 +143,7 @@ msm_unmount_disk_image() {
 }
 
 msm_insert_service() {
+    mkdir -p $MSMPATH/mnt/tce/boot/rootfs/opt/srv
     sudo rsync -xa --progress $MSMPATH/srv/ $MSMPATH/mnt/tce/boot/rootfs/opt/srv
     return 0
 }
@@ -167,6 +167,8 @@ msm_close_core_gz() {
     msm_pack_gz "$1"
     return 0
 }
+
+MSMHOME=$(msm_helper_resolve "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/..")
 
 # Prints the available commands.
 msm_help() {
