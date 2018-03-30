@@ -139,7 +139,7 @@ msm_create_disk_image() {
     # Write boot sector
     dd if="$MSMHOME/images/core-9.0.img" of=$disk
     # Eject the disk
-    diskutil eject $disk
+    hdiutil eject $disk
     return 0
 }
 
@@ -169,8 +169,11 @@ msm_build_disk_image() {
     msm_create_disk_image
     msm_mount_disk_image
     msm_unpack_gz "$MSMPATH/mnt/tce/boot"
+    sleep 1 # An attempt to stop the crashing.
     msm_insert_service
+    sleep 1 # An attempt to stop the crashing.
     msm_pack_gz "$MSMPATH/mnt/tce/boot"
+    sleep 1 # An attempt to stop the crashing.
     msm_unmount_disk_image
     return 0
 }
