@@ -28,8 +28,18 @@ if [[ ! -f "./pkg/service.img" ]]; then
 	exit 1
 fi
 
+hdiutil attach "./pkg/service.img" -mountpoint "./mnt" > /dev/null 2>&1
+result=0
+
+if [[ ! -f "./mnt/tce/boot/core.gz" ]]; then
+	echo "Core.gz was not created."
+	result=1
+fi
+
+hdiutil eject "./mnt" > /dev/null 2>&1
+
 cd "$WD" || exit 1
 rm -rf "$WD/tmp"
 
-exit 0
+exit $result
 }
