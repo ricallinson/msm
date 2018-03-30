@@ -1,6 +1,6 @@
 # Microkernel Service Maker
 
-Create truly reliable infrastructure with zero dependency deployments using immutable microkernels that are secure, stable and 100% reproducible.
+Create truly reliable infrastructure with zero dependency deployments based on immutable microkernels that are secure, stable and 100% reproducible.
 
 __Microkernel Service Maker__ is a command line tool that creates a Linux disk image from the [Tiny Core](http://distro.ibiblio.org/tinycorelinux/) distribution with a custom shell script executed automatically on boot.
 
