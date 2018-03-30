@@ -6,7 +6,7 @@ A command line tool that creates a Linux disk image from [Tiny Core](http://dist
 
 * [QEMU](https://www.qemu.org/)
 * [Shellcheck](https://github.com/koalaman/shellcheck)
-* [extFS](https://www.paragon-software.com/home/extfs-mac/)
+* [extFS](https://www.paragon-software.com/home/extfs-mac/) (keeps crashing but fuse-ext2 doesn't seem to work)
 
 ## Install
 
