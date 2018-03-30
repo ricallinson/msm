@@ -1,6 +1,6 @@
 # Microkernel Service Maker
 
-A command line tool that creates a Linux disk image with an executable automatically loaded.
+A command line tool that creates a Linux disk image with [Tiny Core](http://distro.ibiblio.org/tinycorelinux/) with a custom executable automatically loaded at boot.
 
 ## Prerequisites
 
