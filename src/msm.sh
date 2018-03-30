@@ -122,8 +122,12 @@ msm_pack_gz() {
     cd "$coreDir/rootfs" || return 1
     sudo find . | sudo cpio -o -H newc | sudo gzip -2 | sudo tee "$coreDir/core.gz" > /dev/null
     # sudo advdef -z4 $coreDir/core.gz
+    sleep 10 # The OS could be crashing here so testing if it's a timing problem.
+    echo "chmod"
     sudo chmod 755 "$coreDir/core.gz"
     cd "$currentDir" || return 1
+    sleep 10 # The OS could be crashing here so testing if it's a timing problem.
+    echo "rm -rf"
     rm -rf "$coreDir/rootfs"
     return 0
 }
@@ -152,6 +156,8 @@ msm_mount_disk_image() {
 
 # Mounts the disk image at './mnt'.
 msm_unmount_disk_image() {
+    sleep 10 # The OS could be crashing here so testing if it's a timing problem.
+    echo "eject"
     hdiutil eject "$MSMPATH/mnt"
     return 0
 }
@@ -169,11 +175,8 @@ msm_build_disk_image() {
     msm_create_disk_image
     msm_mount_disk_image
     msm_unpack_gz "$MSMPATH/mnt/tce/boot"
-    sleep 2 # An attempt to stop the crashing.
     msm_insert_service
-    sleep 2 # An attempt to stop the crashing.
     msm_pack_gz "$MSMPATH/mnt/tce/boot"
-    sleep 2 # An attempt to stop the crashing.
     msm_unmount_disk_image
     return 0
 }

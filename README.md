@@ -1,12 +1,41 @@
 # Microkernel Service Maker
 
-A command line tool that creates a Linux disk image from an executable file.
+A command line tool that creates a Linux disk image with an executable automatically loaded.
 
 ## Prerequisites
 
 * [QEMU](https://www.qemu.org/)
 * [Shellcheck](https://github.com/koalaman/shellcheck)
 * [extFS](https://www.paragon-software.com/home/extfs-mac/)
+
+## Install
+
+Using git, clone this repository into a directory named `~/.msm`.
+
+    git clone git@github.com:ricallinson/msm.git ~/.msm
+
+To activate msm, you need to source it from your shell:
+
+    source ~/.msm/src/msm.sh
+
+I always add this line to my _~/.bashrc_, _~/.profile_, or _~/.zshrc_ file to have it automatically sourced upon login. For OSX this can be achieved with the following command;
+
+	echo "source ~/.msm/src/msm.sh" >> ~/.bash_profile
+
+## Usage
+
+Once a Msm workspace has been created anything you place in the workspaces `./srv` directory will be added to the `./pkg/service.img` disk image. The `./svr/init.sh` file can then be used for whatever you want to happen after the kernel has booted.
+
+### Example
+
+The following commands will create a Msm workspace, build a Tiny Core Linux disk image and then load it with QEMU. Once the Linux kernel has booted it will execute whatever is in the `./svr/init.sh` file.
+
+	mkdir ./msmtest
+	cd ./msmtest
+	msm here .
+	msm run
+
+Once this is completed you should see a QEMU window with the words "Hello World!" above the Tiny Core header.
 
 ## Testing
 
