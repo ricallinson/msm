@@ -35,7 +35,7 @@ The following commands will create a Msm workspace, build a Tiny Core Linux disk
 	msm here .
 	msm run
 
-Once this is completed you should see a QEMU window with the words "Hello World!" above the Tiny Core header.
+Once this is completed you should see a QEMU window with the words "Hello World!" above the Tiny Core header once the kernel has booted.
 
 ## Testing
 
