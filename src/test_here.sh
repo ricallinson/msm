@@ -37,7 +37,15 @@ cd "$WD/tmp/dir" || exit 1
 
 data="$(msm here .)"
 if [[ "$data" != *"Msm workspace set to: /"* ]]; then
-	echo "Using a nested workspace failed."
+	echo "Using a child directory workspace failed."
+	exit 1
+fi
+
+mkdir -p "$WD/tmp/dir/foo/bar"
+
+data="$(msm here "$WD/tmp/dir/foo/bar")"
+if [[ "$data" != *"Msm workspace set to: /"* ]]; then
+	echo "Creating a directory workspace failed."
 	exit 1
 fi
 

@@ -88,7 +88,7 @@ msm_here() {
     fi
     if [ -z "$wPath" ]; then
         echo
-        echo "This command must be run in a Msm workspace"
+        echo "This command must be run in a Msm workspace or on an exisiting directory."
         echo
         return 0
     fi
@@ -192,9 +192,12 @@ msm_help() {
     echo
     echo "The commands are:"
     echo
-    echo "    install     compile packages and dependencies"
-    echo "    version     print Msm version"
     echo "    here        sets $MSMPATH to the given directory creating a workspace is one is not found."
+    echo "    build       create a Linux disk image."
+    echo "    run         create a Linux disk image and activate it with QEMU."
+    echo "    env         print Msm environment variables."
+    echo "    version     print Msm version."
+    echo "    help        this text."
     echo
     return 0
 }
