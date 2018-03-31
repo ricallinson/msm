@@ -105,6 +105,7 @@ msm_here() {
 }
 
 # @String $1 - Directory path
+# Only works in Linux.
 # Unpacks core.gz in the given directory to new child directory 'rootfs'.
 msm_unpack_gz() {
     currentDir=$(pwd)
@@ -117,6 +118,7 @@ msm_unpack_gz() {
 }
 
 # @String $1 - Directory path
+# Only works in Linux.
 # Packs core.gz in the given directory from the content of the child directory 'rootfs'.
 msm_pack_gz() {
     currentDir=$(pwd)
@@ -125,17 +127,15 @@ msm_pack_gz() {
     sudo find . | sudo cpio -o -H newc | sudo gzip -2 | sudo tee "$coreDir/core.gz" > /dev/null
     # sudo advdef -z4 $coreDir/core.gz
     cd "$currentDir" || return 1
-    echo "The OS is crashing here..."
-    sleep 2
-    # sudo chmod 755 "$coreDir/core.gz"
-    # rm -rf "$coreDir/rootfs"
+    sudo chmod 755 "$coreDir/core.gz"
+    rm -rf "$coreDir/rootfs"
     return 0
 }
 
 # Creates a base TinyCore disk image in the workspaces 'pkg' directory.
 msm_create_disk_image() {
     # Cleanup img directory
-    rm "$MSMPATH/pkg/*"
+    rm "$MSMPATH/pkg/service.img"
     # Create a raw disk image
     qemu-img create -f raw "$MSMPATH/pkg/service.img" 50M
     # Mount the image.
@@ -156,35 +156,31 @@ msm_mount_disk_image() {
 
 # Mounts the disk image at './mnt'.
 msm_unmount_disk_image() {
+    sleep 2 # Give it time...
     hdiutil eject "$MSMPATH/mnt"
     return 0
 }
 
-# Appends '/opt/srv/init.sh' to './mnt/.../opt/bootlocal.sh' and copies the content of './srv' to '/mnt/.../opt/srv'.
+# Copies the content of './srv' to '/mnt/.../optional/srv'.
 msm_insert_service() {
-    sudo rsync -xa --progress "$MSMPATH/srv" "$MSMPATH/mnt/tce/boot/rootfs/opt"
-    echo "/opt/srv/init.sh" >> "$MSMPATH/mnt/tce/boot/rootfs/opt/bootlocal.sh"
+    cp -a "$MSMPATH/srv" "$MSMPATH/mnt/tce/srv"
     return 0
 }
 
 msm_insert_dev_mode() {
-    sudo rsync -xa --progress "$MSMHOME/images/optional" "$MSMPATH/mnt/tce/boot"
-    echo "libcap.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
-    echo "libedit.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
-    echo "libevent.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
-    echo "openssl.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
     echo "openssh.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
 }
 
+# @String $1 - Mode ["dev", ""]
 # Creates a new base TinyCore disk image in the workspace './pkg' directory.
 # Copies to the disk image the './srv' directory and makes './srv/init.sh' execute on startup.
 msm_build_disk_image() {
     msm_create_disk_image
     msm_mount_disk_image
-    msm_unpack_gz "$MSMPATH/mnt/tce/boot"
-    msm_insert_dev_mode
+    if [[ "$1" = "dev" ]]; then
+        msm_insert_dev_mode
+    fi
     msm_insert_service
-    msm_pack_gz "$MSMPATH/mnt/tce/boot"
     msm_unmount_disk_image
     return 0
 }
@@ -252,9 +248,8 @@ msm() {
         msm_build_disk_image
     ;;
     "run" )
-        # Add SSH when in run mode.
         # Build service image
-        msm_build_disk_image
+        msm_build_disk_image "dev"
         # Start a VM running the service
         qemu-system-x86_64 -m 512 -drive file="$MSMPATH/pkg/service.img,index=0,media=disk,format=raw"
     ;;
