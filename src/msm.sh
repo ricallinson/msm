@@ -60,6 +60,8 @@ msm_helper_resolve() {
     return 0
 }
 
+MSMHOME=$(msm_helper_resolve "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/..")
+
 # @String $1 - Directory path
 # Creates directories and files for a new workspace.
 msm_make_workspace() {
@@ -122,12 +124,10 @@ msm_pack_gz() {
     cd "$coreDir/rootfs" || return 1
     sudo find . | sudo cpio -o -H newc | sudo gzip -2 | sudo tee "$coreDir/core.gz" > /dev/null
     # sudo advdef -z4 $coreDir/core.gz
-    echo "chomd"
-    sleep 10 # Could be the OS crashing here so testing if it's a timing problem.
+    echo "chmod"
+    sleep 15 # Could be the OS crashing here so testing if it's a timing problem.
     sudo chmod 755 "$coreDir/core.gz"
     cd "$currentDir" || return 1
-    echo "rm -rf"
-    sleep 10 # Could be the OS crashing here so testing if it's a timing problem.
     rm -rf "$coreDir/rootfs"
     return 0
 }
@@ -156,17 +156,24 @@ msm_mount_disk_image() {
 
 # Mounts the disk image at './mnt'.
 msm_unmount_disk_image() {
-    echo "eject"
-    sleep 10 # Could be the OS crashing here so testing if it's a timing problem.
     hdiutil eject "$MSMPATH/mnt"
     return 0
 }
 
 # Appends '/opt/srv/init.sh' to './mnt/.../opt/bootlocal.sh' and copies the content of './srv' to '/mnt/.../opt/srv'.
 msm_insert_service() {
-    echo "/opt/srv/init.sh" >> "$MSMPATH/mnt/tce/boot/rootfs/opt/bootlocal.sh"
     sudo rsync -xa --progress "$MSMPATH/srv" "$MSMPATH/mnt/tce/boot/rootfs/opt"
+    echo "/opt/srv/init.sh" >> "$MSMPATH/mnt/tce/boot/rootfs/opt/bootlocal.sh"
     return 0
+}
+
+msm_insert_dev_mode() {
+    sudo rsync -xa --progress "$MSMHOME/images/optional" "$MSMPATH/mnt/tce/boot"
+    # echo "libcap.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
+    # echo "libedit.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
+    # echo "libevent.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
+    # echo "openssl.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
+    # echo "openssh.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
 }
 
 # Creates a new base TinyCore disk image in the workspace './pkg' directory.
@@ -175,13 +182,12 @@ msm_build_disk_image() {
     msm_create_disk_image
     msm_mount_disk_image
     msm_unpack_gz "$MSMPATH/mnt/tce/boot"
+    msm_insert_dev_mode
     msm_insert_service
     msm_pack_gz "$MSMPATH/mnt/tce/boot"
     msm_unmount_disk_image
     return 0
 }
-
-MSMHOME=$(msm_helper_resolve "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/..")
 
 # Prints the available commands.
 msm_help() {
