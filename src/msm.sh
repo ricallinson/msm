@@ -124,11 +124,11 @@ msm_pack_gz() {
     cd "$coreDir/rootfs" || return 1
     sudo find . | sudo cpio -o -H newc | sudo gzip -2 | sudo tee "$coreDir/core.gz" > /dev/null
     # sudo advdef -z4 $coreDir/core.gz
-    echo "chmod"
-    sleep 15 # Could be the OS crashing here so testing if it's a timing problem.
-    sudo chmod 755 "$coreDir/core.gz"
     cd "$currentDir" || return 1
-    rm -rf "$coreDir/rootfs"
+    echo "The OS is crashing here..."
+    sleep 2
+    # sudo chmod 755 "$coreDir/core.gz"
+    # rm -rf "$coreDir/rootfs"
     return 0
 }
 
