@@ -246,6 +246,7 @@ msm() {
         msm_build_disk_image
     ;;
     "run" )
+        # Add SSH when in run mode.
         # Build service image
         msm_build_disk_image
         # Start a VM running the service
