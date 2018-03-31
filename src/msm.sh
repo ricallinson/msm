@@ -167,7 +167,7 @@ msm_insert_service() {
     return 0
 }
 
-msm_insert_dev_mode() {
+msm_insert_ssh() {
     echo "openssh.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
 }
 
@@ -177,8 +177,8 @@ msm_insert_dev_mode() {
 msm_build_disk_image() {
     msm_create_disk_image
     msm_mount_disk_image
-    if [[ "$1" = "dev" ]]; then
-        msm_insert_dev_mode
+    if [[ "$1" = "ssh" ]]; then
+        msm_insert_ssh
     fi
     msm_insert_service
     msm_unmount_disk_image
@@ -249,7 +249,7 @@ msm() {
     ;;
     "run" )
         # Build service image
-        msm_build_disk_image "dev"
+        msm_build_disk_image "ssh"
         # Start a VM running the service
         qemu-system-x86_64 -m 512 -drive file="$MSMPATH/pkg/service.img,index=0,media=disk,format=raw"
     ;;
