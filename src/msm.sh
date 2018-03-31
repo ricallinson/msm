@@ -169,11 +169,11 @@ msm_insert_service() {
 
 msm_insert_dev_mode() {
     sudo rsync -xa --progress "$MSMHOME/images/optional" "$MSMPATH/mnt/tce/boot"
-    # echo "libcap.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
-    # echo "libedit.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
-    # echo "libevent.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
-    # echo "openssl.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
-    # echo "openssh.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
+    echo "libcap.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
+    echo "libedit.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
+    echo "libevent.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
+    echo "openssl.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
+    echo "openssh.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
 }
 
 # Creates a new base TinyCore disk image in the workspace './pkg' directory.
