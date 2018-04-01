@@ -8,7 +8,7 @@ __Microkernel Service Maker__ is a command line tool that creates a Linux disk i
 
 * [QEMU](https://www.qemu.org/)
 * [Shellcheck](https://github.com/koalaman/shellcheck)
-* [extFS](https://www.paragon-software.com/home/extfs-mac/) (keeps crashing but fuse-ext2 doesn't seem to work)
+* [extFS](https://www.paragon-software.com/home/extfs-mac/)
 
 ## Install
 
