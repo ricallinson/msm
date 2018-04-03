@@ -6,6 +6,8 @@ __Microkernel Service Maker__ is a command line tool that creates a Linux disk i
 
 ## Prerequisites
 
+This has only been used on OSX 10.13.3.
+
 * [QEMU](https://www.qemu.org/)
 * [Shellcheck](https://github.com/koalaman/shellcheck)
 * [extFS](https://www.paragon-software.com/home/extfs-mac/)
