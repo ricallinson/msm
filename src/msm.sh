@@ -167,6 +167,18 @@ msm_insert_service() {
     return 0
 }
 
+msm_insert_optional() {
+    for file in $MSMPATH/opt/*
+    do
+        if [[ -f $file ]]; then
+            cp $file $MSMPATH/mnt/tce/optional
+            echo $(basename "$file") >> "$MSMPATH/mnt/tce/onboot.lst"
+            echo "Added $(basename "$file") to onboot."
+        fi
+    done
+    return 0
+}
+
 msm_insert_ssh() {
     echo "openssh.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
     return 0
@@ -181,6 +193,7 @@ msm_build_disk_image() {
     if [[ "$1" = "ssh" ]]; then
         msm_insert_ssh
     fi
+    msm_insert_optional
     msm_insert_service
     msm_unmount_disk_image
     return 0
