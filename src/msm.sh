@@ -71,9 +71,9 @@ msm_make_workspace() {
     fi
     mkdir -p "$wPath/pkg"
     mkdir -p "$wPath/srv"
-    echo "#!/bin/sh" > "$wPath/srv/init.sh"
-    echo "echo \"Hello World!\"" >> "$wPath/srv/init.sh"
-    chmod +x "$wPath/srv/init.sh"
+    # echo '#!/bin/sh' > "$wPath/srv/init.sh"
+    # echo 'echo "Hello World!"' >> "$wPath/srv/init.sh"
+    # chmod u+x "$wPath/srv/init.sh"
     return 0
 }
 
@@ -90,7 +90,7 @@ msm_here() {
     fi
     if [ -z "$wPath" ]; then
         echo
-        echo "This command must be run in a Msm workspace or on an exisiting directory."
+        echo "This command must be run in a Msm workspace or on an existing directory."
         echo
         return 0
     fi
@@ -163,12 +163,13 @@ msm_unmount_disk_image() {
 
 # Copies the content of './srv' to '/mnt/.../optional/srv'.
 msm_insert_service() {
-    cp -a "$MSMPATH/srv" "$MSMPATH/mnt/tce/srv"
+    cp -R "$MSMPATH/srv" "$MSMPATH/mnt/tce/srv"
     return 0
 }
 
 msm_insert_ssh() {
     echo "openssh.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
+    return 0
 }
 
 # @String $1 - Mode ["dev", ""]
@@ -249,7 +250,7 @@ msm() {
     ;;
     "run" )
         # Build service image
-        msm_build_disk_image "ssh"
+        msm_build_disk_image #"ssh"
         # Start a VM running the service
         qemu-system-x86_64 -m 512 -drive file="$MSMPATH/pkg/service.img,index=0,media=disk,format=raw"
     ;;

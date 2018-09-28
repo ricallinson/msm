@@ -37,6 +37,15 @@ The following commands will create a Msm workspace, build a Tiny Core Linux disk
 	mkdir ./msmtest
 	cd ./msmtest
 	msm here .
+
+Create your `./srv/init.sh` file and make it executable.
+
+	echo '#!/bin/sh' > ./srv/init.sh
+	echo 'echo Hello world!' >> ./srv/init.sh
+	chmod u+x ./srv/init.sh
+
+Now you can run your new microkernel service.
+
 	msm run
 
 Once this is completed you should see a QEMU window with the words "Hello World!" above the Tiny Core header once the kernel has booted.
