@@ -163,7 +163,7 @@ msm_unmount_disk_image() {
 
 # Copies the content of './srv' to '/mnt/tce/srv'.
 msm_insert_service() {
-    cp -R "$MSMPATH/srv" "$MSMPATH/mnt/tce/srv"
+    cp -r "$MSMPATH/srv" "$MSMPATH/mnt/tce/srv"
     return 0
 }
 
@@ -171,7 +171,7 @@ msm_insert_optional() {
     for file in $MSMPATH/opt/*
     do
         if [[ -f $file ]]; then
-            cp $file $MSMPATH/mnt/tce/optional
+            cp -a $file $MSMPATH/mnt/tce/optional
             echo $(basename "$file") >> "$MSMPATH/mnt/tce/onboot.lst"
             echo "Added $(basename "$file") to onboot."
         fi
@@ -264,6 +264,10 @@ msm() {
     "run" )
         # Build service image
         msm_build_disk_image #"ssh"
+        # Start a VM running the service
+        qemu-system-x86_64 -m 512 -drive file="$MSMPATH/pkg/service.img,index=0,media=disk,format=raw"
+    ;;
+    "start" )
         # Start a VM running the service
         qemu-system-x86_64 -m 512 -drive file="$MSMPATH/pkg/service.img,index=0,media=disk,format=raw"
     ;;
