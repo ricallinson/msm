@@ -274,7 +274,7 @@ msm() {
         msm_start_disk_image
     ;;
     "use" )
-        # Start the VM service.
+        # Start the VM service and return to the current process.
         msm_start_disk_image &
     ;;
     *)
