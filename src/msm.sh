@@ -199,6 +199,12 @@ msm_build_disk_image() {
     return 0
 }
 
+# Start the VM service.
+msm_start_disk_image() {
+    qemu-system-x86_64 -m 512 -drive file="$MSMPATH/pkg/service.img,index=0,media=disk,format=raw"
+    return 0
+}
+
 # Prints the available commands.
 msm_help() {
     echo "Msm is a tool for creating disk images from an executable."
@@ -262,14 +268,14 @@ msm() {
         msm_build_disk_image
     ;;
     "run" )
-        # Build service image
+        # Build service image.
         msm_build_disk_image #"ssh"
-        # Start a VM running the service
-        qemu-system-x86_64 -m 512 -drive file="$MSMPATH/pkg/service.img,index=0,media=disk,format=raw"
+        # Start the VM service.
+        msm_start_disk_image
     ;;
-    "start" )
-        # Start a VM running the service
-        qemu-system-x86_64 -m 512 -drive file="$MSMPATH/pkg/service.img,index=0,media=disk,format=raw"
+    "use" )
+        # Start the VM service.
+        msm_start_disk_image &
     ;;
     *)
         echo "msm: unknown command '$1'"
