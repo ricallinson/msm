@@ -161,7 +161,7 @@ msm_unmount_disk_image() {
     return 0
 }
 
-# Copies the content of './srv' to '/mnt/.../optional/srv'.
+# Copies the content of './srv' to '/mnt/tce/srv'.
 msm_insert_service() {
     cp -R "$MSMPATH/srv" "$MSMPATH/mnt/tce/srv"
     return 0
