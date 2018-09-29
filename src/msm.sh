@@ -104,34 +104,7 @@ msm_here() {
     return 0
 }
 
-# @String $1 - Directory path
-# Only works in Linux.
-# Unpacks core.gz in the given directory to new child directory 'rootfs'.
-msm_unpack_gz() {
-    currentDir=$(pwd)
-    coreDir="$1"
-    mkdir "$coreDir/rootfs"
-    cd "$coreDir/rootfs" || return 1
-    gunzip -c "$coreDir/core.gz" | sudo cpio -i -d
-    cd "$currentDir" || return 1
-    return 0
-}
-
-# @String $1 - Directory path
-# Only works in Linux.
-# Packs core.gz in the given directory from the content of the child directory 'rootfs'.
-msm_pack_gz() {
-    currentDir=$(pwd)
-    coreDir="$1"
-    cd "$coreDir/rootfs" || return 1
-    sudo find . | sudo cpio -o -H newc | sudo gzip -2 | sudo tee "$coreDir/core.gz" > /dev/null
-    # sudo advdef -z4 $coreDir/core.gz
-    cd "$currentDir" || return 1
-    sudo chmod 755 "$coreDir/core.gz"
-    rm -rf "$coreDir/rootfs"
-    return 0
-}
-
+# @String $1 - ["x86", "pi"]
 # Creates a base TinyCore disk image in the workspaces 'pkg' directory.
 msm_create_disk_image() {
     # Cleanup img directory
@@ -141,7 +114,7 @@ msm_create_disk_image() {
     # Mount the image.
     disk=$(hdiutil attach -imagekey diskimage-class=CRawDiskImage -nomount "$MSMPATH/pkg/service.img")
     # Write boot sector
-    dd if="$MSMHOME/images/core-9.0.img" of=$disk
+    dd if="$MSMHOME/images/core-$1-9.0.img" of=$disk
     # Eject the disk
     hdiutil eject $disk
     return 0
@@ -184,13 +157,14 @@ msm_insert_ssh() {
     return 0
 }
 
-# @String $1 - Mode ["dev", ""]
+# @String $1 - ["x86", "pi"]
+# @String $2 - ["ssh", ""]
 # Creates a new base TinyCore disk image in the workspace './pkg' directory.
 # Copies to the disk image the './srv' directory and makes './srv/init.sh' execute on startup.
 msm_build_disk_image() {
-    msm_create_disk_image
+    msm_create_disk_image "$1"
     msm_mount_disk_image
-    if [[ "$1" = "ssh" ]]; then
+    if [[ "$2" = "ssh" ]]; then
         msm_insert_ssh
     fi
     msm_insert_optional
@@ -200,8 +174,38 @@ msm_build_disk_image() {
 }
 
 # Start the VM service.
-msm_start_disk_image() {
+msm_start_x86_image() {
     qemu-system-x86_64 -m 512 -drive file="$MSMPATH/pkg/service.img,index=0,media=disk,format=raw"
+    return 0
+}
+
+# Start the VM service.
+msm_start_pi_image() {
+    qemu-system-arm -kernel "$MSMHOME/images/piCore-QEMU/piCore-140513-QEMU" \
+    -initrd "$MSMHOME/images/piCore-QEMU/9.0.3v7.gz" \
+    -cpu arm1176 -m 256 -M versatilepb \
+    -append "root=/dev/ram0 elevator=deadline rootwait quiet nortc nozswap"
+    return 0
+}
+
+# @String $1 - ["x86", "pi"]
+# Start the VM service.
+msm_start_disk_image() {
+    if [[ "$1" = "x86" ]]; then
+        msm_start_x86_image
+    elif [[ "$1" = "pi" ]]; then 
+        msm_start_pi_image
+    fi
+    return 0
+}
+
+# @String $1 - [pi", ""]
+msm_arch() {
+    if [[ "$1" = "pi" ]]; then
+        echo "pi"
+    else
+        echo "x86"
+    fi
     return 0
 }
 
@@ -265,17 +269,15 @@ msm() {
 
     case $1 in
     "build" )
-        msm_build_disk_image
+        msm_build_disk_image "$(msm_arch $2)"
     ;;
     "run" )
-        # Build service image.
-        msm_build_disk_image #"ssh"
-        # Start the VM service.
-        msm_start_disk_image
+        msm_build_disk_image "$(msm_arch $2)" #"ssh"
+        msm_start_disk_image "$(msm_arch $2)"
     ;;
     "use" )
         # Start the VM service and return to the current process.
-        msm_start_disk_image &
+        msm_start_disk_image "$(msm_arch $2)" &
     ;;
     *)
         echo "msm: unknown command '$1'"
