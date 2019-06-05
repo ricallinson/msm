@@ -184,7 +184,7 @@ msm_start_pi_image() {
     qemu-system-arm -kernel "$MSMHOME/images/piCore-QEMU/piCore-140513-QEMU" \
     -initrd "$MSMHOME/images/piCore-QEMU/9.0.3v7.gz" \
     -cpu arm1176 -m 256 -M versatilepb \
-    -append "root=/dev/ram0 elevator=deadline rootwait quiet nortc nozswap"
+    -append "root=/dev/ram0 elevator=deadline quiet noautologin rootwait nortc nozswap"
     return 0
 }
 
