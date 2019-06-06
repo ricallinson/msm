@@ -129,14 +129,13 @@ msm_mount_disk_image() {
 
 # Mounts the disk image at './mnt'.
 msm_unmount_disk_image() {
-    sleep 2 # Give it time...
     hdiutil eject "$MSMPATH/mnt"
     return 0
 }
 
-# Copies the content of './srv' to '/mnt/tce/srv'.
+# Copies the content of './srv' to '/mnt/tce/srv/'.
 msm_insert_service() {
-    cp -r "$MSMPATH/srv" "$MSMPATH/mnt/tce/srv"
+    cp -r "$MSMPATH/srv" "$MSMPATH/mnt/tce/srv/"
     return 0
 }
 
@@ -167,8 +166,8 @@ msm_build_disk_image() {
     if [[ "$2" = "ssh" ]]; then
         msm_insert_ssh
     fi
-    msm_insert_optional
     msm_insert_service
+    msm_insert_optional
     msm_unmount_disk_image
     return 0
 }
