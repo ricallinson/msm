@@ -31,9 +31,9 @@ Everything following is specific to this distribution.
 
 	qemu-system-x86_64 -m 512 -hda ./images/base.img -cdrom ./iso/core-x86-14.0.iso -boot d
 
-Once the VM loads the boot screen, hit `return`. No boot option are required at this point.
+Once the VM loads the boot screen, hit `return`. No boot options are required at this point.
 
-Then type the following to install the `install tool`.
+Now type the following to install the `install tool`.
 
 	tce-load -wil tc-install
 
@@ -41,7 +41,7 @@ When the downloads have completed, execute the tool via `sudo`.
 
 	sudo tc-install.sh
 
-Then enter the following options when asked.
+Then enter the following answers to the options when asked.
 
 * c (from booted CDROM)
 * f (frugal)
@@ -57,7 +57,7 @@ Now `poweroff` the VM to commit the settings.
 
 	sudo poweroff
 
-Now boot up the base-image VM with the following command.
+With that done, boot up the base-image VM with the following command.
 
 	qemu-system-x86_64 -m 512 -hda ./images/base.img
 
