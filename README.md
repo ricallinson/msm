@@ -1,85 +1,108 @@
-# Microkernel Service Maker
+# Microkernel Service Maker (MSM)
 
-Create truly reliable infrastructure with zero dependency deployments based on immutable microkernels that are secure, stable and 100% reproducible.
-
-__Microkernel Service Maker__ is a command line tool that creates a Linux disk image from the [Tiny Core](http://distro.ibiblio.org/tinycorelinux/) distribution with a custom shell script executed automatically on boot.
+Currently broken.
 
 ## Prerequisites
 
-This has only been used on OSX 10.13.3.
+This has only been tested on an M2 Air running OSX 13.4.
 
+* [Core](http://tinycorelinux.net/)
 * [QEMU](https://www.qemu.org/)
-* [Shellcheck](https://github.com/koalaman/shellcheck)
 * [extFS](https://www.paragon-software.com/home/extfs-mac/)
 
-## Install
+## How it Works
 
-Using git, clone this repository into a directory named `~/.msm`.
+The idea is simple. Create a base Linux image that's super small (http://tinycorelinux.net/).
+Then add your desired service to it and boot it.
 
-    git clone git@github.com:ricallinson/msm.git ~/.msm
+The following details the underpinnings of the "Microkernel Service Maker" (MSM) CLI.
 
-To activate msm, you need to source it from your shell:
+## Creating the Base Image
 
-    source ~/.msm/src/msm.sh
+The base disk-image is what will be used to generate all future service disk-images.
 
-I always add this line to my _~/.bashrc_, _~/.profile_, or _~/.zshrc_ file to have it automatically sourced upon login. For OSX this can be achieved with the following command;
+First make an empty disk image (taking into account how much disk space you will need).
 
-	echo "source ~/.msm/src/msm.sh" >> ~/.bash_profile
+	qemu-img create -f raw ./images/base.img 50M
 
-## Usage
+Now boot your base Linux `iso` image into the empty disk image.
+As of writing [Core](http://tinycorelinux.net/downloads.html) was the kernel used in this example.
+Everything following is specific to this distribution.
 
-Once a Msm workspace has been created anything you place in the workspaces `./srv` directory will be added to the `./pkg/service.img` disk image. The `./svr/init.sh` file can then be used for whatever you want to happen after the kernel has booted.
+	qemu-system-x86_64 -m 512 -hda ./images/base.img -cdrom ./iso/core-x86-14.0.iso -boot d
 
-### Example
+Once the VM loads the boot screen, hit `return`. No boot option are required at this point.
 
-The following commands will create a Msm workspace, build a Tiny Core Linux disk image and then load it with QEMU. Once the Linux kernel has booted it will execute whatever is in the `./svr/init.sh` file.
+Then type the following to install the `install tool`.
 
-	mkdir ./msmtest
-	cd ./msmtest
-	msm here .
+	tce-load -wil tc-install
 
-Create your `./srv/init.sh` file and make it executable.
+When the downloads have completed, execute the tool via `sudo`.
 
-	echo '#!/bin/sh' > ./srv/init.sh
-	echo 'echo Hello world!' >> ./srv/init.sh
-	chmod u+x ./srv/init.sh
+	sudo tc-install.sh
 
-Now you can run your new microkernel service.
+Then enter the following options when asked.
 
-	msm run
+* c (from booted CDROM)
+* f (frugal)
+* 1 (whole Disk)
+* 2 (sda)
+* y (install boot loader)
+* return (skip, not required)
+* 3 (ext4)
+* opt=sda1 waitusb=0 noautologin
+* y (yes)
 
-Once this is completed you should see a QEMU window with the words "Hello World!" above the Tiny Core header once the kernel has booted.
+Now `poweroff` the VM to commit the settings.
 
-## Testing
+	sudo poweroff
 
-	./test.sh
+Now boot up the base-image VM with the following command.
 
-## Creating Kernel Image
+	qemu-system-x86_64 -m 512 -hda ./images/base.img
 
-	qemu-img create -f raw ./images/core-9.0.img 50M
-	qemu-system-x86_64 -m 512 -hda ./images/core-9.0.img -cdrom ./images/TinyCore-9.0.iso -boot d
+Then `poweroff` again. This creates the `/opt/` directory used later to load services.
 
-Boot into the first option and then install __tc-install-GUI__. Execute it via the command line with `tc-install` and select;
+	sudo poweroff
 
-* Frugal
-* Whole Disk
-* sda
-* Install boot loader
+### Creating a Service Disk Image
 
-Click the next arrow then select;
+This process uses the disk-image built above as the *base* for any services created.
 
-* vfat
+Create a new empty disk image.
 
-Click the next arrow.
+	qemu-img create -f raw "./pkg/service.img" 50M
 
-Click the next arrow then select;
+Attach the empty image.
 
-* Don't install extensions
+	hdiutil attach -imagekey diskimage-class=CRawDiskImage -nomount ./pkg/service.img
 
-Click the next arrow and select;
+Copy the base-image into the new empty disk image image.
 
-* Proceed
+	dd if="../../new/images/base.img" of="/dev/disk4"
 
-On completion exit QEMU. Now start a new VM with the image just created;
+Eject the new disk image.
 
-	qemu-system-x86_64 -m 512 -hda ./images/core-9.0.img
+	hdiutil eject /dev/disk4
+
+### Adding a Service to the Disk Image
+
+[Core](http://tinycorelinux.net/) has a simple system for running a shell script after boot.
+All this step does is copy the service executable(s) and a shell script to start said service.
+
+	hdiutil attach ./pkg/service.img -mountpoint ./mnt
+
+	cp -r ./srv ./mnt/opt/msm/
+	echo "/opt/msm/start.sh" >> "./mnt/opt/bootlocal.sh"
+
+	hdiutil eject ./mnt
+
+### Running the Service Image
+
+The *Microkernel Service* is now ready to perform it's duties.
+
+To run the service in a VM (with network bridging) use the following command.
+
+	qemu-system-x86_64 -m 512 -hda ./pkg/service.img -nic vmnet-bridged,ifname=en0
+
+Once running you can use `ifconfig` to discover the VM's IP address.

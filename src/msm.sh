@@ -14,6 +14,8 @@
 export MSMVERSION
 MSMVERSION="0.0.1"
 export MSMHOME
+export MSMIMAGES
+MSMIMAGES="new/images"
 
 msm_version() {
     echo "$MSMVERSION"
@@ -114,7 +116,7 @@ msm_create_disk_image() {
     # Mount the image.
     disk=$(hdiutil attach -imagekey diskimage-class=CRawDiskImage -nomount "$MSMPATH/pkg/service.img")
     # Write boot sector
-    dd if="$MSMHOME/images/core-$1-9.0.img" of=$disk
+    dd if="$MSMHOME/$MSMIMAGES/base.img" of=$disk
     # Eject the disk
     hdiutil eject $disk
     return 0
@@ -151,10 +153,10 @@ msm_insert_optional() {
     return 0
 }
 
-msm_insert_ssh() {
-    echo "openssh.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
-    return 0
-}
+# msm_insert_ssh() {
+#     echo "openssh.tcz" >> "$MSMPATH/mnt/tce/onboot.lst"
+#     return 0
+# }
 
 # @String $1 - ["x86", "pi"]
 # @String $2 - ["ssh", ""]
@@ -163,9 +165,9 @@ msm_insert_ssh() {
 msm_build_disk_image() {
     msm_create_disk_image "$1"
     msm_mount_disk_image
-    if [[ "$2" = "ssh" ]]; then
-        msm_insert_ssh
-    fi
+    # if [[ "$2" = "ssh" ]]; then
+    #     msm_insert_ssh
+    # fi
     msm_insert_service
     msm_insert_optional
     msm_unmount_disk_image
@@ -179,13 +181,13 @@ msm_start_x86_image() {
 }
 
 # Start the VM service.
-msm_start_pi_image() {
-    qemu-system-arm -kernel "$MSMHOME/images/piCore-QEMU/piCore-140513-QEMU" \
-    -initrd "$MSMHOME/images/piCore-QEMU/9.0.3v7.gz" \
-    -cpu arm1176 -m 256 -M versatilepb \
-    -append "root=/dev/ram0 elevator=deadline quiet noautologin rootwait nortc nozswap"
-    return 0
-}
+# msm_start_pi_image() {
+#     qemu-system-arm -kernel "$MSMHOME/images/piCore-QEMU/piCore-140513-QEMU" \
+#     -initrd "$MSMHOME/images/piCore-QEMU/9.0.3v7.gz" \
+#     -cpu arm1176 -m 256 -M versatilepb \
+#     -append "root=/dev/ram0 elevator=deadline quiet noautologin rootwait nortc nozswap"
+#     return 0
+# }
 
 # @String $1 - ["x86", "pi"]
 # Start the VM service.
@@ -271,7 +273,7 @@ msm() {
         msm_build_disk_image "$(msm_arch $2)"
     ;;
     "run" )
-        msm_build_disk_image "$(msm_arch $2)" #"ssh"
+        msm_build_disk_image "$(msm_arch $2)"
         msm_start_disk_image "$(msm_arch $2)"
     ;;
     "use" )
